@@ -1,5 +1,7 @@
 use std::{io::Error, collections::{HashMap, HashSet}, os::fd::RawFd};
 
+pub type EventId = usize;
+
 #[derive(PartialEq, Hash, Eq)]
 pub enum Interest {
     READ,
@@ -52,12 +54,12 @@ impl Registry {
         }
     }
 
-    pub fn register_read(&mut self, fd: RawFd) -> Result<(), Error> {
-       self.register_interest(fd, Interest::READ)
+    pub fn register_read(&mut self, fd: RawFd, event_id: EventId) -> Result<(), Error> {
+       self.register_interest(fd, event_id, Interest::READ)
     }
 
-    pub fn register_write(&mut self, fd: RawFd) -> Result<(), Error> {
-        self.register_interest(fd, Interest::WRITE)
+    pub fn register_write(&mut self, fd: RawFd, event_id: EventId) -> Result<(), Error> {
+        self.register_interest(fd, event_id, Interest::WRITE)
     }
 
     pub fn remove_interests(&mut self, fd: RawFd) -> Result<(), Error> {
@@ -76,7 +78,7 @@ impl Registry {
     }
 
 
-    fn register_interest(&mut self, fd: RawFd, interest: Interest) -> Result<(), Error> {
+    fn register_interest(&mut self, fd: RawFd, event_id: EventId, interest: Interest) -> Result<(), Error> {
 
         let interests = self.epoll_set.entry(fd).or_insert(HashSet::new());
 
@@ -111,7 +113,7 @@ impl Registry {
     
         let mut event = libc::epoll_event {
             events: new_events as u32,
-            u64: fd as u64,
+            u64: event_id as u64,
         };
     
         let result = unsafe { libc::epoll_ctl(self.epoll_fd, operation, fd, &mut event) };

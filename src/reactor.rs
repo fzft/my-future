@@ -1,7 +1,7 @@
 use std::os::fd::RawFd;
 use std::io::Error;
 
-use crate::poll::{Registry, Poll};
+use crate::poll::{Registry, Poll, EventId};
 
 pub struct Reactor {
     registry: Option<Registry> ,
@@ -34,13 +34,13 @@ impl Reactor {
 
 
     // Add read event to poll with fd
-    pub fn read_interest(&mut self, fd: RawFd) -> Result<(), Error> {
-        self.registry.as_mut().unwrap().register_read(fd)
+    pub fn read_interest(&mut self, fd: RawFd, event_id: EventId) -> Result<(), Error> {
+        self.registry.as_mut().unwrap().register_read(fd, event_id)
     }
 
     // Add write event to poll with fd
-    pub fn write_interest(&mut self, fd: RawFd) -> Result<(), Error> {
-        self.registry.as_mut().unwrap().register_write(fd)
+    pub fn write_interest(&mut self, fd: RawFd, event_id: EventId) -> Result<(), Error> {
+        self.registry.as_mut().unwrap().register_write(fd, event_id)
     }
 
     // Remove the event with fd
