@@ -1,3 +1,5 @@
+use clap::__derive_refs::once_cell::sync::Lazy;
+use future::Future;
 use lazy_static::lazy_static;
 use std::error::Error;
 use std::sync::Mutex;
@@ -18,6 +20,8 @@ use crate::{executor::Executor, poll::EventId};
 mod executor;
 mod poll;
 mod reactor;
+mod future;
+
 
 lazy_static! {
     static ref EXECUTOR: Mutex<executor::Executor> = Mutex::new(executor::Executor::new());
@@ -25,7 +29,23 @@ lazy_static! {
     static ref CONTEXTS: Mutex<HashMap<EventId, Request>> = Mutex::new(HashMap::new());
 }
 
+fn block_on<F: Future>(f: F) -> F::Output {
+    loop {
+        let ctx = future::Context::from_waker(&future::Waker);
+        if let future::Poll::Ready(val) = f.poll(&ctx) {
+            return val
+        }
+    }
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
+
+    let ln = xx;
+    block_on(xx.accept.and_then(|s, r| {
+
+        }).and_then()
+    );
+
     let url = Url::from_args()?;
     let listener = TcpListener::bind(url)?;
     listener.set_nonblocking(true)?;
@@ -49,7 +69,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     listener_cb(listener, 100);
 
     while let Ok(event_id) = receiver.recv() {
-        println!("recv {}", event_id);
         EXECUTOR
             .lock()
             .expect("get executor lock")
